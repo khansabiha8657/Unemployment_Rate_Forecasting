@@ -1,15 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-# pip install pmdarima
-
-
-# In[1]:
-
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,10 +9,6 @@ import pmdarima as pm
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_squared_log_error
 from sklearn.model_selection import TimeSeriesSplit
-
-
-# In[2]:
-
 
 def read_unemp(file='C:/Users/Mohd Sajid Khan/Documents/Sabiha_915/Time series/output.csv',index=range(1, 885548)):
     # Read the CSV file into a DataFrame
@@ -40,18 +24,10 @@ unemp_data = read_unemp()
 unemp_data.index = pd.RangeIndex(start=1, stop=len(unemp_data) + 1)
 print(unemp_data)
 
-
-# In[3]:
-
-
 # Create a dictionary of DataFrames for each year
 yearly_data = {}
 for year in range(1990, 2017):
     yearly_data[year] = unemp_data[unemp_data['Year'] == year]
-
-
-# In[4]:
-
 
 # Create an empty dictionary to store the mean monthly rates for each year
 mean_monthly_rates = {}
@@ -70,10 +46,6 @@ for year in range(1990, 2017):
     # Create a dictionary where keys are months and values are mean rates, then store it
     mean_monthly_rates[year] = dict(zip(months_in_sequence, mean_rates))
 
-
-# In[5]:
-
-
 # Create a list of years from 1990 to 2016, repeated for 12 months each
 years = [year for year in range(1990, 2017) for _ in range(12)]
 
@@ -88,10 +60,6 @@ mean_monthly_rate_df = pd.DataFrame({'year': years, 'month': months, 'rate': mea
 mean_monthly_rate_df
 # Now, mean_monthly_rate_df is a DataFrame with columns 'year', 'month', and 'rate', containing the mean monthly rates by year.
 
-
-# In[6]:
-
-
 # Create a new column 'Date' by combining 'year' and 'month' columns
 mean_monthly_rate_df['Date'] = pd.to_datetime(mean_monthly_rate_df['year'].astype(str) + '-' + mean_monthly_rate_df['month'].astype(str) + '-01', format='%Y-%b-%d')
 
@@ -99,47 +67,12 @@ mean_monthly_rate_df['Date'] = pd.to_datetime(mean_monthly_rate_df['year'].astyp
 df = mean_monthly_rate_df.drop(columns=['year', 'month'])
 df
 
-
-# In[7]:
-
-
 df["Date"]= pd.to_datetime(df["Date"])
 
-
-# In[8]:
-
-
 df.set_index("Date", inplace=True)
-
-
-# In[9]:
-
-
 df
-
-
-# In[10]:
-
-
 df.isna().sum()
-
-
-# In[11]:
-
-
 df_copy = df.copy()
-
-
-# In[12]:
-
-
-# downsampling
-df_2 = df.resample('A').mean()
-df_2
-
-
-# In[13]:
-
 
 plt.boxplot(df)
 # Add labels and a title
@@ -149,10 +82,6 @@ plt.title('Box Plot Example')
 
 # Display the plot
 plt.show()
-
-
-# In[14]:
-
 
 def replace_outliers_with_mean(data, threshold=1.5):
     data = np.array(data)  # Convert input to a NumPy array for easier manipulation
@@ -167,99 +96,45 @@ def replace_outliers_with_mean(data, threshold=1.5):
     
     return data
 
-
-# In[15]:
-
-
 data = replace_outliers_with_mean(df)
-
-
-# In[16]:
-
-
 data
 
-
-# In[17]:
-
-
 df3 = pd.DataFrame(data, columns=["Rate"], index = df.index)
-
-
-# In[18]:
-
-
 df3.info()
-
-
-# In[19]:
-
 
 # Min-Max scaling
 def normalize_data(data):
-
     min_vals = data.min()
     max_vals = data.max()
-    
     normalized_data = (data - min_vals) / (max_vals - min_vals)
-    
     return normalized_data
-
 df3.iloc[:,0] = normalize_data(df3.iloc[:,0])
-
-
-# In[20]:
-
-
 df3
 
-
-# In[21]:
-
-
 df_copy.plot( figsize = (15,7), ylabel = "Unemployment Rate", title=  "Time Series Plot of US Unemployment Rate")
-
-
-# In[22]:
-
-
 df_2.plot( figsize = (15,7), xlabel = 'year',ylabel = "AverageTemperature", title=  "Temperature change over the years")
-
-
-# In[23]:
-
 
 # Perform seasonal decomposition
 decomposition = seasonal_decompose(df3["Rate"].dropna(), model='additive', period = 4) 
 
 # Plot the decomposed components
 plt.figure(figsize=(12, 8))
-
 plt.subplot(4, 1, 1)
 plt.plot(decomposition.observed)
 plt.title('Observed Data')
-
 plt.subplot(4, 1, 2)
 plt.plot(decomposition.trend)
 plt.title('Trend')
-
 plt.subplot(4, 1, 3)
 plt.plot(decomposition.seasonal)
 plt.title('Seasonality')
-
 plt.subplot(4, 1, 4)
 plt.plot(decomposition.resid)
 plt.title('Residuals')
-
 plt.tight_layout()
 plt.show()
 
-
-# In[24]:
-
-
 # ADF test for stationarity
-
 result = adfuller(df3["Rate"])
 print("ADF Test Results:")
 print(f"ADF Statistic: {result[0]}")
@@ -269,20 +144,11 @@ print("Critical Values:")
 for key, value in result[4].items():
     print(f"{key}: {value}")
 
-
-# In[25]:
-
-
 # first difference
 df3["differenced_rate"] = df3["Rate"].diff(1)
 df3["differenced_rate"].dropna().plot(figsize = (14,6))
 
-
-# In[26]:
-
-
 # ADF test for stationarity
-
 result = adfuller(df3["differenced_rate"].dropna())
 print("ADF Test Results:")
 print(f"ADF Statistic: {result[0]}")
@@ -292,17 +158,9 @@ print("Critical Values:")
 for key, value in result[4].items():
     print(f"{key}: {value}")
 
-
-# In[27]:
-
-
 # for seasonal 
 df3["seasonal_rate"] = df3["Rate"].diff(12)
 df3
-
-
-# In[28]:
-
 
 result = adfuller(df3["seasonal_rate"].dropna())
 print("ADF Test Results:")
@@ -312,15 +170,7 @@ print("Critical Values:")
 for key, value in result[4].items():
     print(f"{key}: {value}")
 
-
-# In[29]:
-
-
 df3["seasonal_rate_differenced"] = df3["seasonal_rate"].diff()
-
-
-# In[30]:
-
 
 result = adfuller(df3["seasonal_rate_differenced"].dropna())
 print("ADF Test Results:")
@@ -330,55 +180,26 @@ print("Critical Values:")
 for key, value in result[4].items():
     print(f"{key}: {value}")
 
-
-# In[31]:
-
-
 # Plotting PACF and PACF function of first difference for getting the non seasonal parameters i.e. (p,d,q)
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
 plot_acf(df3["differenced_rate"].dropna(), lags=40, ax=ax1)
 plot_pacf(df3["differenced_rate"].dropna(), lags=40, ax=ax2)
 plt.show()
 
-
-# In[32]:
-
-
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
 plot_acf(df3["seasonal_rate_differenced"].dropna(), lags=60, ax=ax1)
 plot_pacf(df3["seasonal_rate_differenced"].dropna(), lags=60, ax=ax2)
 plt.show()
-
-
-# In[33]:
-
-
 df3.shape
-
-
-# In[34]:
-
 
 # training data 
 train_data1 = df3.iloc[:300,:]
 train_data1
 
-
-# In[35]:
-
-
 model = pm.auto_arima(train_data1["Rate"], m = 12, seasonal =True, start_p =0, d=1, start_q =0,max_p=3
                       ,max_q =9,max_order = None, test = "adf", stepwise=True, trace = True,D = 0,
                       max_P =4, max_Q =1)
-
-
-# In[36]:
-
-
 model.summary()
-
-
-# In[37]:
 
 
 ## Forecast future values using the fitted model
@@ -388,16 +209,8 @@ forecast_steps = 24
 test_data1 = df3["Rate"][-forecast_steps:]
 test_data1
 
-
-# In[38]:
-
-
 forecast1 = model.predict(n_periods=24)
 forecast1
-
-
-# In[39]:
-
 
 # Calculate evaluation metrics
 mae = mean_absolute_error(test_data1, forecast1)
@@ -412,10 +225,6 @@ print(f"Root Mean Squared Error (RMSE): {rmse}")
 print(f"Mean Squared Log Error (MSLE): {msle}")
 print(f"Mean Absolute Percentage Error (MAPE): {mape}")
 
-
-# In[40]:
-
-
 # plot the second model's forecast 
 plt.figure(figsize=(15, 7))
 plt.plot(forecast1.index, forecast1, label='SARIMAX Forecast', color='blue')
@@ -426,26 +235,13 @@ plt.legend()
 plt.title('SARIMAX Forecast vs Actual Data')
 plt.show()
 
-
-# In[112]:
-
-
 # Fit an SARIMAX model to the time series data
 model1 = SARIMAX(train_data1["Rate"], order=(0,1,0),seasonal_order=(1,1,1,12))
 fitted_model = model1.fit()
-
 print(fitted_model.summary())
-
-
-# In[113]:
-
 
 diag1 = model.plot_diagnostics(figsize=(15, 7))  # this only show the plot of ACF
 plt.show()
-
-
-# In[114]:
-
 
 # PACF 
 res = model.resid()
@@ -453,29 +249,16 @@ fig, ax1  = plt.subplots(1, 1, figsize=(10, 4))
 plot_pacf(res, lags=10, ax=ax1)
 plt.show()
 
-
-# In[115]:
-
-
 # PACF 
 res = model.resid()
 fig, ax1  = plt.subplots(1, 1, figsize=(10, 4))
 plot_acf(res, lags=10, ax=ax1)
 plt.show()
 
-
-# In[41]:
-
-
 # Fit an SARIMAX model to the time series data
 model1 = SARIMAX(train_data1["Rate"], order=(1,1,1),seasonal_order=(1,0,1,12))
 fitted_model = model1.fit()
-
 print(fitted_model.summary())
-
-
-# In[42]:
-
 
 ## Forecast future values using the fitted model
 forecast_steps = 24
@@ -484,17 +267,9 @@ forecast_steps = 24
 test_data1 = df3["Rate"][-forecast_steps:]
 test_data1
 
-
-# In[43]:
-
-
 forecast_results = fitted_model.get_forecast(steps=forecast_steps)
 forecast = forecast_results.predicted_mean
 forecast
-
-
-# In[44]:
-
 
 # Calculate evaluation metrics
 mae = mean_absolute_error(test_data1, forecast)
@@ -509,10 +284,6 @@ print(f"Root Mean Squared Error (RMSE): {rmse}")
 print(f"Mean Squared Log Error (MSLE): {msle}")
 print(f"Mean Absolute Percentage Error (MAPE): {mape}")
 
-
-# In[46]:
-
-
 # plot the second model's forecast 
 plt.figure(figsize=(15, 7))
 plt.plot(forecast.index, forecast, label='SARIMAX Forecast', color='blue')
@@ -523,34 +294,17 @@ plt.legend()
 plt.title('SARIMAX Forecast vs Actual Data')
 plt.show()
 
-
-# In[48]:
-
-
 # Fit an SARIMAX model to the time series data
 model2 = SARIMAX(df3["Rate"], order=(1,1,1),seasonal_order=(1,0,1,12))
 fitted_model2 = model2.fit()
 
 print(fitted_model2.summary())
 
-
-# In[52]:
-
-
 # Get the forecast and confidence intervals
 forecast_results2 = fitted_model2.get_forecast(steps=24)
 forecast2 = forecast_results2.predicted_mean
 conf_int = forecast_results2.conf_int(alpha = 0.1)
-
-
-# In[54]:
-
-
 forecast2
-
-
-# In[53]:
-
 
 # plot the forecasted values and 90% confidence interval
 plt.figure(figsize=(15, 7))
@@ -562,10 +316,3 @@ plt.ylabel('Values')
 plt.legend()
 plt.title('SARIMAX Forecast vs Actual Data with Confidence Intervals')
 plt.show()
-
-
-# In[ ]:
-
-
-
-
